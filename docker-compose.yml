@@ -1,0 +1,30 @@
+
+services:
+  minio:
+    image: quay.io/minio/aistor/minio:RELEASE.2026-09-19T17-05-25Z
+    container_name: triplens-minio
+
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    volumes:
+      - minio_data:/mnt/data
+      - ./secrets/minio.license:/minio.license:ro
+
+    command:
+      - server
+      - /mnt/data
+      - --console-address
+      - ":9001"
+      - --license
+      - /minio.license
+
+    restart: unless-stopped
+
+volumes:
+  minio_data:
