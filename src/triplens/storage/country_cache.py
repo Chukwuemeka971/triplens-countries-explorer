@@ -1,4 +1,3 @@
-
 import hashlib
 import logging
 
@@ -102,6 +101,84 @@ def get_cached_country(
         )
 
         return country
+
+    except CountryCacheError:
+        raise
+
+    except Exception as exc:
+        raise CountryCacheError(
+            f"Failed to retrieve or cache country: {country_name}"
+        ) from exc
+
+
+def get_country_with_cache_status(
+    country_name: str,
+    client: Minio | None = None,
+) -> tuple[dict, str]:
+    """
+    Retrieve a country and report whether the result came
+    from the MinIO cache or the REST Countries API.
+
+    Returns:
+        tuple[dict, str]:
+            The country data and either:
+            - "hit" for a cache hit
+            - "miss" for a cache miss
+    """
+    if not country_name or not country_name.strip():
+        raise ValueError("Country name cannot be empty.")
+
+    try:
+        if client is None:
+            client = get_minio_client()
+
+        object_name = _get_cache_object_name(country_name)
+
+        # 1. Cache hit.
+        if object_exists(client, object_name):
+            logger.info(
+                "Country cache hit: %s",
+                country_name,
+            )
+
+            country = download_json(
+                client,
+                object_name,
+            )
+
+            if not isinstance(country, dict):
+                raise CountryCacheError(
+                    "Cached country response has an invalid format."
+                )
+
+            return country, "hit"
+
+        # 2. Cache miss.
+        logger.info(
+            "Country cache miss: fetching %s from API",
+            country_name,
+        )
+
+        country = get_country(country_name)
+
+        if not isinstance(country, dict):
+            raise CountryCacheError(
+                "Country API returned an invalid response."
+            )
+
+        # 3. Store the API response in MinIO.
+        upload_json(
+            client,
+            object_name,
+            country,
+        )
+
+        logger.info(
+            "Country cached successfully: %s",
+            country_name,
+        )
+
+        return country, "miss"
 
     except CountryCacheError:
         raise
