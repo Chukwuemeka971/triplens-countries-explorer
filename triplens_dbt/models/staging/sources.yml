@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: triplens_raw
+    description: "Raw data loaded from the TripLens Python ingestion pipeline."
+
+    database: TRIPLENS
+    schema: RAW
+
+    tables:
+      - name: RAW_COUNTRIES
+        description: "Raw country records from the REST Countries API."
+
+        columns:
+          - name: RECORD_ID
+            description: "Deterministic identifier for the country record."
+
+          - name: COUNTRY_NAME
+            description: "Common country name."
+
+          - name: SOURCE
+            description: "Source system that provided the record."
+
+          - name: INGESTED_AT
+            description: "Timestamp when the record was loaded into Snowflake."
+
+          - name: PAYLOAD
+            description: "Complete REST Countries API response stored as Snowflake VARIANT."

@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: stg_countries
+    description: "Cleaned country-level data extracted from the RAW REST Countries payload."
+
+    columns:
+
+      - name: COUNTRY_KEY
+        description: "Deterministic unique identifier for the country."
+        tests:
+          - not_null
+          - unique
+
+      - name: COUNTRY_NAME
+        description: "Common country name."
+        tests:
+          - not_null
+
+      - name: ALPHA_2
+        description: "ISO 3166-1 alpha-2 country code."
+
+      - name: ALPHA_3
+        description: "ISO 3166-1 alpha-3 country code."
+
+      - name: REGION
+        description: "Geographical region."
+
+      - name: SUBREGION
+        description: "Geographical subregion."
+
+      - name: POPULATION
+        description: "Population of the country."
+
+      - name: AREA_KM2
+        description: "Country area in square kilometres."
+
+      - name: SOURCE
+        description: "Source system."
+        tests:
+          - not_null
+
+      - name: INGESTED_AT
+        description: "Timestamp when the record entered RAW."
+        tests:
+          - not_null
