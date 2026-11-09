@@ -39,7 +39,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -q
+          pytest -q -m "not integration"
 
       - name: Validate Airflow DAGs
         run: |

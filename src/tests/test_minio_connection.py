@@ -8,13 +8,13 @@ from triplens.storage.minio_client import (
     MinIOStorageError,
 )
 
-
+@pytest.mark.integration
 def test_minio_connection():
     client = get_minio_client()
 
     assert client is not None
 
-
+@pytest.mark.integration
 def test_minio_bucket_exists_or_can_be_created():
     client = get_minio_client()
 
@@ -34,6 +34,7 @@ def test_missing_minio_credentials(monkeypatch):
     ):
         storage.get_minio_client()
 
+@pytest.mark.integration
 def test_minio_lifecycle_policy():
     client = get_minio_client()
 
