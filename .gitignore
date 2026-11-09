@@ -1,4 +1,7 @@
+# ============================================================
 # Python
+# ============================================================
+
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,22 +9,60 @@ __pycache__/
 .venv/
 venv/
 
+# ============================================================
 # Environment variables and secrets
+# ============================================================
+
 .env
 .env.*
 !.env.example
+
 secrets/
 *.license
 
+# ============================================================
+# Airflow / Astro
+# ============================================================
+
+.astro/
+airflow-webserver.pid
+webserver_config.py
+airflow.cfg
+airflow.db
+
+# Astro local metadata
+.astro/*.local.yml
+.astro/*.local.yaml
+
+# Astro generated metadata
+**/.astro/dbt_metadata.json
+**/.astro/manifest.slim.json
+
+# Astro standalone/worktree artifacts
+.astro/standalone/
+.astro/worktrees/
+
+# ============================================================
 # IDE
+# ============================================================
+
 .vscode/
 .idea/
 
+# ============================================================
 # Logs
+# ============================================================
+
 *.log
 
+# ============================================================
 # Temporary files
+# ============================================================
+
 tmp/
 temp/
 .DS_Store
 Thumbs.db
+
+# dbt local profile
+triplens_dbt/profiles.yml

@@ -71,13 +71,30 @@ def _validate_coordinates(
 
 def _validate_weather_response(data: Any) -> dict[str, Any]:
     """
-    Validate the basic structure of an Open-Meteo response.
+    Validate the structural integrity of an Open-Meteo response.
+
+    The validation checks:
+    - response type
+    - required top-level fields
+    - hourly data structure
+    - required hourly variables
+    - non-empty observations
+    - consistent hourly array lengths
+    - valid latitude and longitude
     """
+
+    # -----------------------------------------------------
+    # RESPONSE TYPE
+    # -----------------------------------------------------
 
     if not isinstance(data, dict):
         raise WeatherAPIError(
             "Weather API returned an invalid response type."
         )
+
+    # -----------------------------------------------------
+    # REQUIRED TOP-LEVEL FIELDS
+    # -----------------------------------------------------
 
     required_fields = (
         "latitude",
@@ -98,15 +115,137 @@ def _validate_weather_response(data: Any) -> dict[str, Any]:
             + ", ".join(missing_fields)
         )
 
-    if not isinstance(data["hourly"], dict):
+    # -----------------------------------------------------
+    # COORDINATE VALIDATION
+    # -----------------------------------------------------
+
+    latitude = data["latitude"]
+    longitude = data["longitude"]
+
+    if not isinstance(latitude, (int, float)):
+        raise WeatherAPIError(
+            "Weather API response contains an invalid latitude."
+        )
+
+    if not isinstance(longitude, (int, float)):
+        raise WeatherAPIError(
+            "Weather API response contains an invalid longitude."
+        )
+
+    if not -90 <= latitude <= 90:
+        raise WeatherAPIError(
+            "Weather API response latitude is outside "
+            "the valid range."
+        )
+
+    if not -180 <= longitude <= 180:
+        raise WeatherAPIError(
+            "Weather API response longitude is outside "
+            "the valid range."
+        )
+
+    # -----------------------------------------------------
+    # TIMEZONE VALIDATION
+    # -----------------------------------------------------
+
+    timezone = data["timezone"]
+
+    if not isinstance(timezone, str) or not timezone.strip():
+        raise WeatherAPIError(
+            "Weather API response contains an invalid timezone."
+        )
+
+    # -----------------------------------------------------
+    # HOURLY OBJECT
+    # -----------------------------------------------------
+
+    hourly = data["hourly"]
+
+    if not isinstance(hourly, dict):
         raise WeatherAPIError(
             "Weather API hourly data has an invalid format."
         )
 
-    if "time" not in data["hourly"]:
+    # -----------------------------------------------------
+    # REQUIRED HOURLY VARIABLES
+    # -----------------------------------------------------
+
+    required_hourly_variables = {
+        "time",
+        "temperature_2m",
+        "apparent_temperature",
+        "precipitation",
+        "rain",
+        "weather_code",
+        "wind_speed_10m",
+    }
+
+    missing_hourly_variables = [
+        variable
+        for variable in required_hourly_variables
+        if variable not in hourly
+    ]
+
+    if missing_hourly_variables:
         raise WeatherAPIError(
-            "Weather API hourly response is missing time data."
+            "Weather API response is missing required "
+            "hourly variables: "
+            + ", ".join(
+                sorted(missing_hourly_variables)
+            )
         )
+
+    # -----------------------------------------------------
+    # TIME OBSERVATIONS
+    # -----------------------------------------------------
+
+    time_values = hourly["time"]
+
+    if not isinstance(time_values, list):
+        raise WeatherAPIError(
+            "Weather API hourly time values must be a list."
+        )
+
+    if not time_values:
+        raise WeatherAPIError(
+            "Weather API returned no hourly observations."
+        )
+
+    observation_count = len(time_values)
+
+    # -----------------------------------------------------
+    # HOURLY ARRAY VALIDATION
+    # -----------------------------------------------------
+
+    for variable in required_hourly_variables:
+
+        values = hourly[variable]
+
+        if not isinstance(values, list):
+            raise WeatherAPIError(
+                "Weather API hourly variable "
+                f"'{variable}' must be a list."
+            )
+
+        if len(values) != observation_count:
+            raise WeatherAPIError(
+                "Weather API hourly arrays have "
+                f"inconsistent lengths: "
+                f"'{variable}' has {len(values)} values, "
+                f"but time has {observation_count}."
+            )
+
+    # -----------------------------------------------------
+    # SOURCE QUALITY PASSED
+    # -----------------------------------------------------
+
+    logger.info(
+        "Weather source quality checks passed. "
+        "latitude=%s longitude=%s observations=%s",
+        latitude,
+        longitude,
+        observation_count,
+    )
 
     return data
 
@@ -148,17 +287,24 @@ def get_weather(
     _validate_coordinates(latitude, longitude)
 
     if not isinstance(timezone, str) or not timezone.strip():
-        raise ValueError("timezone must be a non-empty string.")
+        raise ValueError(
+            "timezone must be a non-empty string."
+        )
 
     if not isinstance(forecast_days, int):
-        raise ValueError("forecast_days must be an integer.")
+        raise ValueError(
+            "forecast_days must be an integer."
+        )
 
     if not 1 <= forecast_days <= 16:
         raise ValueError(
             "forecast_days must be between 1 and 16."
         )
 
-    if not isinstance(hourly_variables, str) or not hourly_variables.strip():
+    if (
+        not isinstance(hourly_variables, str)
+        or not hourly_variables.strip()
+    ):
         raise ValueError(
             "hourly_variables must be a non-empty string."
         )
@@ -180,7 +326,9 @@ def get_weather(
     )
 
     try:
+
         with _create_session() as session:
+
             response = session.get(
                 OPEN_METEO_URL,
                 params=params,
@@ -192,8 +340,10 @@ def get_weather(
             data = response.json()
 
     except requests.RequestException as exc:
+
         logger.exception(
-            "Weather API request failed. latitude=%s longitude=%s",
+            "Weather API request failed. "
+            "latitude=%s longitude=%s",
             latitude,
             longitude,
         )
@@ -203,6 +353,7 @@ def get_weather(
         ) from exc
 
     except ValueError as exc:
+
         logger.exception(
             "Weather API returned invalid JSON."
         )
@@ -211,10 +362,15 @@ def get_weather(
             "Weather API returned invalid JSON."
         ) from exc
 
+    # -----------------------------------------------------
+    # SOURCE DATA QUALITY GATE
+    # -----------------------------------------------------
+
     validated_data = _validate_weather_response(data)
 
     logger.info(
-        "Weather API request successful. latitude=%s longitude=%s",
+        "Weather API request successful. "
+        "latitude=%s longitude=%s",
         latitude,
         longitude,
     )

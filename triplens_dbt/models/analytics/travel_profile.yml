@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: travel_profile
+    description: >
+      Business-facing TripLens travel profile combining
+      country characteristics with daily weather conditions.
+
+    tests:
+      - unique:
+          column_name: "ALPHA_3 || '-' || FORECAST_DATE"
+
+    columns:
+
+      - name: COUNTRY_KEY
+        description: Stable country record identifier.
+        tests:
+          - not_null
+
+      - name: COUNTRY_NAME
+        description: Common country name.
+        tests:
+          - not_null
+
+      - name: ALPHA_3
+        description: ISO alpha-3 country code.
+        tests:
+          - not_null
+
+      - name: REGION
+        description: Geographic region.
+
+      - name: SUBREGION
+        description: Geographic subregion.
+
+      - name: POPULATION
+        description: Country population.
+
+      - name: LANGUAGE_COUNT
+        description: Number of languages associated with the country.
+
+      - name: CURRENCY_COUNT
+        description: Number of currencies associated with the country.
+
+      - name: TIMEZONE_COUNT
+        description: Number of time zones associated with the country.
+
+      - name: BORDER_COUNTRY_COUNT
+        description: Number of neighbouring countries.
+
+      - name: FORECAST_DATE
+        description: Weather forecast date.
+        tests:
+          - not_null
+
+      - name: AVG_TEMPERATURE_2M
+        description: Average daily temperature.
+
+      - name: MIN_TEMPERATURE_2M
+        description: Minimum daily temperature.
+
+      - name: MAX_TEMPERATURE_2M
+        description: Maximum daily temperature.
+
+      - name: TOTAL_PRECIPITATION
+        description: Total daily precipitation.
+
+      - name: RAINY_HOURS
+        description: Number of rainy hours.
+
+      - name: OBSERVATION_COUNT
+        description: Number of hourly weather observations.
+
+      - name: WEATHER_SUITABILITY
+        description: >
+          Business classification of weather conditions
+          based on temperature and rainy hours.

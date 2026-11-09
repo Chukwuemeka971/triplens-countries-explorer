@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: stg_weather
+    description: >
+      Hourly weather observations extracted from
+      the raw Open-Meteo weather payload.
+
+    columns:
+
+      - name: RECORD_ID
+        description: >
+          Identifier of the source weather record.
+        tests:
+          - not_null
+
+      - name: COUNTRY_CODE
+        description: >
+          ISO alpha-3 country code.
+        tests:
+          - not_null
+
+      - name: FORECAST_DATE
+        description: >
+          Date represented by the weather forecast.
+        tests:
+          - not_null
+
+      - name: WEATHER_TIMESTAMP
+        description: >
+          Timestamp of the hourly weather observation.
+        tests:
+          - not_null
+
+      - name: LATITUDE
+        description: >
+          Latitude used for the weather request.
+
+      - name: LONGITUDE
+        description: >
+          Longitude used for the weather request.
+
+      - name: TIMEZONE
+        description: >
+          Timezone returned by Open-Meteo.
+
+      - name: TEMPERATURE_2M
+        description: >
+          Air temperature at 2 metres.
+
+      - name: APPARENT_TEMPERATURE
+        description: >
+          Apparent temperature at 2 metres.
+
+      - name: PRECIPITATION
+        description: >
+          Total precipitation for the hour.
+
+      - name: RAIN
+        description: >
+          Rain amount for the hour.
+
+      - name: WEATHER_CODE
+        description: >
+          Open-Meteo weather interpretation code.
+
+      - name: WIND_SPEED_10M
+        description: >
+          Wind speed at 10 metres.

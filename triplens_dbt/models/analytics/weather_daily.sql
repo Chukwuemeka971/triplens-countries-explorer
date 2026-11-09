@@ -1,0 +1,86 @@
+WITH hourly_weather AS (
+
+    SELECT
+        RECORD_ID,
+        COUNTRY_CODE,
+        FORECAST_DATE,
+        WEATHER_TIMESTAMP,
+        TEMPERATURE_2M,
+        APPARENT_TEMPERATURE,
+        PRECIPITATION,
+        RAIN,
+        WEATHER_CODE,
+        WIND_SPEED_10M
+    FROM {{ ref('stg_weather') }}
+
+),
+
+daily_weather AS (
+
+    SELECT
+        COUNTRY_CODE,
+        FORECAST_DATE,
+
+        AVG(TEMPERATURE_2M)
+            AS AVG_TEMPERATURE_2M,
+
+        MIN(TEMPERATURE_2M)
+            AS MIN_TEMPERATURE_2M,
+
+        MAX(TEMPERATURE_2M)
+            AS MAX_TEMPERATURE_2M,
+
+        AVG(APPARENT_TEMPERATURE)
+            AS AVG_APPARENT_TEMPERATURE,
+
+        SUM(PRECIPITATION)
+            AS TOTAL_PRECIPITATION,
+
+        SUM(RAIN)
+            AS TOTAL_RAIN,
+
+        AVG(WIND_SPEED_10M)
+            AS AVG_WIND_SPEED_10M,
+
+        COUNT_IF(RAIN > 0)
+            AS RAINY_HOURS,
+
+        COUNT(*) AS OBSERVATION_COUNT,
+
+        MIN(WEATHER_TIMESTAMP)
+            AS FIRST_OBSERVATION,
+
+        MAX(WEATHER_TIMESTAMP)
+            AS LAST_OBSERVATION
+
+    FROM hourly_weather
+
+    GROUP BY
+        COUNTRY_CODE,
+        FORECAST_DATE
+
+)
+
+SELECT
+    COUNTRY_CODE,
+    FORECAST_DATE,
+
+    AVG_TEMPERATURE_2M,
+    MIN_TEMPERATURE_2M,
+    MAX_TEMPERATURE_2M,
+
+    AVG_APPARENT_TEMPERATURE,
+
+    TOTAL_PRECIPITATION,
+    TOTAL_RAIN,
+
+    AVG_WIND_SPEED_10M,
+
+    RAINY_HOURS,
+
+    OBSERVATION_COUNT,
+
+    FIRST_OBSERVATION,
+    LAST_OBSERVATION
+
+FROM daily_weather

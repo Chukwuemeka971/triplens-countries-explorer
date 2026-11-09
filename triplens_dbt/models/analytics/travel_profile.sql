@@ -1,0 +1,96 @@
+WITH country_profile AS (
+
+    SELECT
+        COUNTRY_KEY,
+        COUNTRY_NAME,
+        OFFICIAL_NAME,
+        ALPHA_2,
+        ALPHA_3,
+        REGION,
+        SUBREGION,
+        CAPITAL,
+        POPULATION,
+        AREA_KM2,
+        LATITUDE,
+        LONGITUDE,
+        FLAG_EMOJI,
+        LANGUAGE_COUNT,
+        TIMEZONE_COUNT,
+        BORDER_COUNTRY_COUNT
+    FROM {{ ref('country_profile') }}
+
+),
+
+weather_daily AS (
+
+    SELECT
+        COUNTRY_CODE,
+        FORECAST_DATE,
+        AVG_TEMPERATURE_2M,
+        MIN_TEMPERATURE_2M,
+        MAX_TEMPERATURE_2M,
+        AVG_APPARENT_TEMPERATURE,
+        TOTAL_PRECIPITATION,
+        TOTAL_RAIN,
+        AVG_WIND_SPEED_10M,
+        RAINY_HOURS,
+        OBSERVATION_COUNT
+    FROM {{ ref('weather_daily') }}
+
+)
+
+SELECT
+    c.COUNTRY_KEY,
+    c.COUNTRY_NAME,
+    c.OFFICIAL_NAME,
+    c.ALPHA_2,
+    c.ALPHA_3,
+
+    c.REGION,
+    c.SUBREGION,
+    c.CAPITAL,
+
+    c.POPULATION,
+    c.AREA_KM2,
+
+    c.LATITUDE,
+    c.LONGITUDE,
+
+    c.FLAG_EMOJI,
+
+    c.LANGUAGE_COUNT,
+    c.TIMEZONE_COUNT,
+    c.BORDER_COUNTRY_COUNT,
+
+    w.FORECAST_DATE,
+
+    w.AVG_TEMPERATURE_2M,
+    w.MIN_TEMPERATURE_2M,
+    w.MAX_TEMPERATURE_2M,
+
+    w.AVG_APPARENT_TEMPERATURE,
+
+    w.TOTAL_PRECIPITATION,
+    w.TOTAL_RAIN,
+
+    w.AVG_WIND_SPEED_10M,
+
+    w.RAINY_HOURS,
+    w.OBSERVATION_COUNT,
+
+    CASE
+        WHEN w.AVG_TEMPERATURE_2M BETWEEN 18 AND 30
+             AND w.RAINY_HOURS <= 6
+        THEN 'FAVOURABLE'
+
+        WHEN w.AVG_TEMPERATURE_2M BETWEEN 10 AND 35
+             AND w.RAINY_HOURS <= 12
+        THEN 'MODERATE'
+
+        ELSE 'LESS_FAVOURABLE'
+    END AS WEATHER_SUITABILITY
+
+FROM country_profile AS c
+
+INNER JOIN weather_daily AS w
+    ON c.ALPHA_3 = w.COUNTRY_CODE

@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: weather_daily
+    description: >
+      Daily country-level weather metrics aggregated from
+      hourly Open-Meteo observations.
+
+    tests:
+      - unique:
+          column_name: "COUNTRY_CODE || '-' || FORECAST_DATE"
+
+    columns:
+
+      - name: COUNTRY_CODE
+        description: ISO alpha-3 country code.
+        tests:
+          - not_null
+
+      - name: FORECAST_DATE
+        description: Date represented by the forecast.
+        tests:
+          - not_null
+
+      - name: OBSERVATION_COUNT
+        description: Number of hourly observations used.
+        tests:
+          - not_null
+
+      - name: AVG_TEMPERATURE_2M
+        description: Average hourly temperature at 2 metres.
+
+      - name: MIN_TEMPERATURE_2M
+        description: Minimum hourly temperature at 2 metres.
+
+      - name: MAX_TEMPERATURE_2M
+        description: Maximum hourly temperature at 2 metres.
+
+      - name: AVG_APPARENT_TEMPERATURE
+        description: Average apparent temperature.
+
+      - name: TOTAL_PRECIPITATION
+        description: Total precipitation for the day.
+
+      - name: TOTAL_RAIN
+        description: Total rain for the day.
+
+      - name: AVG_WIND_SPEED_10M
+        description: Average wind speed at 10 metres.
+
+      - name: RAINY_HOURS
+        description: Number of hourly observations with rain.
+
+      - name: FIRST_OBSERVATION
+        description: First hourly observation timestamp.
+
+      - name: LAST_OBSERVATION
+        description: Last hourly observation timestamp.
