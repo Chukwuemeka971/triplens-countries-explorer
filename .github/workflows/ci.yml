@@ -1,0 +1,71 @@
+name: TripLens CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test Python Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure Python path
+        run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/src" >> $GITHUB_ENV
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+      - name: Validate Airflow DAGs
+        run: |
+          python -m compileall dags
+
+      - name: Create CI dbt profile
+        working-directory: triplens_dbt
+        run: |
+          cat > profiles.yml <<'EOF'
+          triplens_dbt:
+            target: ci
+
+            outputs:
+              ci:
+                type: snowflake
+                account: LMDZVFV-RA53915
+                user: CI_USER
+                password: CI_PASSWORD
+                role: ACCOUNTADMIN
+                database: TRIPLENS
+                warehouse: TRIPLENS_WH
+                schema: STAGING
+                threads: 4
+          EOF
+
+      - name: Validate dbt project
+        working-directory: triplens_dbt
+        run: |
+          dbt parse --profiles-dir .
