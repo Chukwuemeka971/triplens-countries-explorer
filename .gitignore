@@ -66,3 +66,7 @@ Thumbs.db
 
 # dbt local profile
 triplens_dbt/profiles.yml
+
+# others
+.coverage
+steps.md
